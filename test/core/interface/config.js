@@ -1,19 +1,15 @@
 /* eslint-env mocha */
-
+/* eslint max-nested-callbacks: ["error", 8] */
 'use strict'
 
 const test = require('interface-ipfs-core')
-const IPFSFactory = require('../../utils/ipfs-factory-instance')
 
-let factory
+const DaemonFactory = require('ipfsd-ctl')
+const df = DaemonFactory.create()
 
 const common = {
-  setup: function (cb) {
-    factory = new IPFSFactory()
-    cb(null, factory)
-  },
-  teardown: function (cb) {
-    factory.dismantle(cb)
+  setup: function (callback) {
+    callback(null, df)
   }
 }
 
