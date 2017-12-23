@@ -1,7 +1,6 @@
 /* eslint-env mocha */
 'use strict'
 
-const Factory = require('../utils/ipfs-factory-daemon')
 const hat = require('hat')
 const chai = require('chai')
 const dirtyChai = require('dirty-chai')
@@ -11,6 +10,9 @@ chai.use(dirtyChai)
 const ipfsExec = require('../utils/ipfs-exec')
 const clean = require('../utils/clean')
 const os = require('os')
+
+const DaemonFactory = require('ipfsd-ctl')
+const df = DaemonFactory.create()
 
 function off (tests) {
   describe('daemon off (directly to core)', () => {
@@ -38,29 +40,25 @@ function off (tests) {
 
 function on (tests) {
   describe('daemon on (through http-api)', () => {
-    let factory
     let thing = {}
 
+    let ipfsd
     before(function (done) {
       // CI takes longer to instantiate the daemon,
       // so we need to increase the timeout for the
       // before step
       this.timeout(60 * 1000)
 
-      factory = new Factory()
-
-      factory.spawnNode((err, node) => {
+      df.spawn({ type: 'js' }, (err, node) => {
         expect(err).to.not.exist()
+        ipfsd = node
         thing.ipfs = ipfsExec(node.repoPath)
         thing.ipfs.repoPath = node.repoPath
         done()
       })
     })
 
-    after(function (done) {
-      this.timeout(60 * 1000)
-      factory.dismantle(done)
-    })
+    after((done) => ipfsd.stop(done))
 
     tests(thing)
   })
